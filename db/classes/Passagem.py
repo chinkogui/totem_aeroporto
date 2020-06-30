@@ -2,6 +2,7 @@ import db.connectDatabase as db
 import mysql.connector
 from mysql.connector import errorcode
 
+
 class Passagem:
     def __init__(self, cpf, numeroVoo, localizador, classe, preco):
         self.cpf = cpf
