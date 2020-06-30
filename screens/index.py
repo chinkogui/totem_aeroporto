@@ -1,5 +1,10 @@
 from tkinter import *
 from tkinter import messagebox
+import db.classes.Passagem
+from db.classes.Checkin import Checkin
+from db.classes.Despachos import Despacho
+from db.classes.Pagamento import Pagamento
+import db.controllers.controller as con
 
 
 class SampleApp(Tk):
@@ -96,7 +101,7 @@ class SecondWindow(Frame):
 
 
 class Bagagens(Frame):
-    def __init__(self, master=None):
+    def __init__(self, master):
         Frame.__init__(self, master=master)
 
         # Configuração da janela principal
@@ -139,75 +144,144 @@ class Bagagens(Frame):
 
         self.azulImage = PhotoImage(file="img/azul_bagagem.png")
         self.buttonAzul = Button(self.contentFrame, image=self.azulImage,
-                                 command=lambda: self.selectEmpresa("azul"))
+                                 command=lambda: self.selectEmpresa(master, "azul"))
         self.buttonAzul.grid(row=2, column=0, pady=10, padx=25, sticky=S)
 
         self.aviancaImage = PhotoImage(file="img/avianca_bagagem.png")
         self.buttonAvianca = Button(self.contentFrame, image=self.aviancaImage,
-                                    command=lambda: self.selectEmpresa("avianca"))
+                                    command=lambda: self.selectEmpresa(master, "avianca"))
         self.buttonAvianca.grid(row=2, column=1, pady=10, padx=25, sticky=S)
 
         self.passaredoImage = PhotoImage(file="img/passaredo_bagagem.png")
         self.buttonPassaredo = Button(self.contentFrame, image=self.passaredoImage,
-                                      command=lambda: self.selectEmpresa("passaredo"))
+                                      command=lambda: self.selectEmpresa(master, "passaredo"))
         self.buttonPassaredo.grid(row=3, column=0, pady=10, padx=25, sticky=S)
 
         self.tamImage = PhotoImage(file="img/tam_bagagem.png")
         self.buttonTam = Button(self.contentFrame, image=self.tamImage,
-                                command=lambda: self.selectEmpresa("tam"))
+                                command=lambda: self.selectEmpresa(master, "tam"))
         self.buttonTam.grid(row=3, column=1, pady=10, padx=25, sticky=S)
 
         self.golImage = PhotoImage(file="img/gol_bagagem.png")
         self.buttonGol = Button(self.contentFrame, image=self.golImage,
-                                command=lambda: self.selectEmpresa("gol"))
+                                command=lambda: self.selectEmpresa(master, "gol"))
         self.buttonGol.grid(row=4, column=0, pady=10, padx=25, sticky=S)
 
-    def selectEmpresa(self, empresa):
+    def selectEmpresa(self, master, empresa):
         localizador = self.localizadorEntry.get()
-        if empresa.lower() == "azul" and localizador != "":
-            self.centerFrame.destroy()
-            self.centerFrame = Frame(self.cv, width=500, height=500)
-            self.centerFrame.pack(side='top', pady=290, anchor='center')
-
-            self.titleFrame = Frame(self.centerFrame, width=500, height=200)
-            self.titleFrame.pack(side='top', anchor='center')
-
-            self.titleLabel = Label(self.titleFrame, font=('arial', 25), width=20, text="Compra de Bagagens")
-            self.titleLabel.grid(row=0, column=0)
-
-            self.descriptionLabel = Label(self.titleFrame, font=('arial', 15), width=45,
-                                          text="Selecione uma das opções abaixo")
-            self.descriptionLabel.grid(row=1, column=0)
-
-            self.contentFrame = Frame(self.centerFrame, width=500, height=300)
-            self.contentFrame.pack(side='top', anchor='center')
-
-            self.azul10Image = PhotoImage(file="img/azul_bagagem_preco/azul_10.png")
-            self.button10Azul = Button(self.contentFrame, image=self.azul10Image)
-            self.button10Azul.grid(row=2, column=0, pady=10, padx=25, sticky=S)
-
-            self.azul20Image = PhotoImage(file="img/azul_bagagem_preco/azul_20.png")
-            self.button20Azul = Button(self.contentFrame, image=self.azul20Image)
-            self.button20Azul.grid(row=2, column=1, pady=10, padx=25, sticky=S)
-
-            self.azul30Image = PhotoImage(file="img/azul_bagagem_preco/azul_30.png")
-            self.button30Azul = Button(self.contentFrame, image=self.azul30Image)
-            self.button30Azul.grid(row=3, column=0, pady=10, padx=25, sticky=S)
-
-        elif empresa.lower() == "avianca" and localizador != "":
-            print(empresa)
-        elif empresa.lower() == "passaredo" and localizador != "":
-            print(empresa)
-        elif empresa.lower() == "tam" and localizador != "":
-            print(empresa)
-        elif empresa.lower() == "gol" and localizador != "":
-            print(empresa)
+        if localizador == "":
+            messagebox.showinfo("Localizador não preenchido", "Por favor, preencha o localizador")
         else:
-            self.messageBox = messagebox.showinfo("Localizador não preenchido", "Por favor, preencha o localizador")
+            passagemId = con.retrievePassagemWithLocalizador(localizador)
+            if passagemId == 0:
+                messagebox.showinfo("Localizador não encontrado",
+                                    "Localizador informado não foi encontrado!\n"
+                                    "Verifique se o localizador está correto")
+            else:
+                self.centerFrame.destroy()
+                self.centerFrame = Frame(self.cv, width=500, height=500)
+                self.centerFrame.pack(side='top', pady=290, anchor='center')
+
+                self.titleFrame = Frame(self.centerFrame, width=500, height=200)
+                self.titleFrame.pack(side='top', anchor='center')
+
+                self.titleLabel = Label(self.titleFrame, font=('arial', 25), width=20, text="Compra de Bagagens")
+                self.titleLabel.grid(row=0, column=0)
+
+                self.descriptionLabel = Label(self.titleFrame, font=('arial', 15), width=45,
+                                              text="Selecione uma das opções abaixo")
+                self.descriptionLabel.grid(row=1, column=0)
+
+                self.contentFrame = Frame(self.centerFrame, width=500, height=300)
+                self.contentFrame.pack(side='top', anchor='center')
+
+                if empresa.lower() == "azul":
+                    self.azul10Image = PhotoImage(file="img/azul_bagagem_preco/azul_10.png")
+                    self.button10Azul = Button(self.contentFrame, image=self.azul10Image,
+                                               command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button10Azul.grid(row=2, column=0, pady=10, padx=25, sticky=S)
+
+                    self.azul20Image = PhotoImage(file="img/azul_bagagem_preco/azul_20.png")
+                    self.button20Azul = Button(self.contentFrame, image=self.azul20Image,
+                                               command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button20Azul.grid(row=2, column=1, pady=10, padx=25, sticky=S)
+
+                    self.azul30Image = PhotoImage(file="img/azul_bagagem_preco/azul_30.png")
+                    self.button30Azul = Button(self.contentFrame, image=self.azul30Image,
+                                               command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button30Azul.grid(row=3, column=0, pady=10, padx=25, sticky=S)
+
+                elif empresa.lower() == "avianca":
+                    self.avianca10Image = PhotoImage(file="img/avianca_bagagem_preco/avianca_10.png")
+                    self.button10Avianca = Button(self.contentFrame, image=self.avianca10Image,
+                                                  command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button10Avianca.grid(row=2, column=0, pady=10, padx=25, sticky=S)
+
+                    self.avianca20Image = PhotoImage(file="img/avianca_bagagem_preco/avianca_20.png")
+                    self.button20Avianca = Button(self.contentFrame, image=self.avianca20Image,
+                                                  command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button20Avianca.grid(row=2, column=1, pady=10, padx=25, sticky=S)
+
+                    self.avianca30Image = PhotoImage(file="img/avianca_bagagem_preco/avianca_30.png")
+                    self.button30Avianca = Button(self.contentFrame, image=self.avianca30Image,
+                                                  command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button30Avianca.grid(row=3, column=0, pady=10, padx=25, sticky=S)
+
+                elif empresa.lower() == "passaredo":
+                    self.passaredo5Image = PhotoImage(file="img/passaredo_bagagem_preco/passaredo_5.png")
+                    self.button5Passaredo = Button(self.contentFrame, image=self.passaredo5Image,
+                                                   command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button5Passaredo.grid(row=2, column=0, pady=10, padx=25, sticky=S)
+
+                    self.passaredo10Image = PhotoImage(file="img/passaredo_bagagem_preco/passaredo_10.png")
+                    self.button10Passaredo = Button(self.contentFrame, image=self.passaredo10Image,
+                                                    command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button10Passaredo.grid(row=2, column=1, pady=10, padx=25, sticky=S)
+
+                    self.passaredo15Image = PhotoImage(file="img/passaredo_bagagem_preco/passaredo_15.png")
+                    self.button15Passaredo = Button(self.contentFrame, image=self.passaredo15Image,
+                                                    command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button15Passaredo.grid(row=3, column=0, pady=10, padx=25, sticky=S)
+
+                elif empresa.lower() == "tam":
+                    self.tam15Image = PhotoImage(file="img/tam_bagagem_preco/tam_15.png")
+                    self.button15Tam = Button(self.contentFrame, image=self.tam15Image,
+                                              command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button15Tam.grid(row=2, column=0, pady=10, padx=25, sticky=S)
+
+                    self.tam30Image = PhotoImage(file="img/tam_bagagem_preco/tam_30.png")
+                    self.button30Tam = Button(self.contentFrame, image=self.tam30Image,
+                                              command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button30Tam.grid(row=2, column=1, pady=10, padx=25, sticky=S)
+
+                elif empresa.lower() == "gol":
+                    self.gol30Image = PhotoImage(file="img/gol_bagagem_preco/gol_30.png")
+                    self.button30Gol = Button(self.contentFrame, image=self.gol30Image,
+                                              command=lambda: self.buyBagagem(master, passagemId[0]))
+                    self.button30Gol.grid(row=2, column=0, pady=10, padx=25, sticky=S)
+
+    def buyBagagem(self, master, passagemId):
+        if con.isBagagemPendent(passagemId):
+            pagamento = Pagamento("credito", "0")
+            pagamento = pagamento.insertPagamento()
+
+            despacho = Despacho(passagemId, pagamento)
+            despacho = despacho.insertCheckin()
+
+            if despacho:
+                msg = messagebox.showinfo("Compra realizada",
+                                          "Sua compra de despacho de bagagem foi realizada com sucesso!")
+                if msg == "ok":
+                    master.switch_frame(FirstWindow)
+        else:
+            msg = messagebox.showinfo("Bagagem já comprada",
+                                      "Já existe despacho de bagagem para essa passagem.")
+            if msg == "ok":
+                master.switch_frame(FirstWindow)
 
 
 class CheckIn(Frame):
-    def __init__(self, master=None):
+    def __init__(self, master):
         Frame.__init__(self, master=master)
 
         # Configuração da janela principal
@@ -240,17 +314,38 @@ class CheckIn(Frame):
         self.localizadorEntry = Entry(self.centerFrame, width=50, textvariable=self.localizador)
         self.localizadorEntry.grid(row=2, column=0, pady=10, padx=25, sticky=S)
 
-        self.button = Button(self.centerFrame, text='Enter')
-        self.button.bind("<Button-1>", self.print)
+        self.button = Button(self.centerFrame, text='Enter',
+                                 command=lambda: self.doCheckin(master))
         self.button.grid(row=3, column=0, pady=10, padx=25, sticky=S)
 
-    def voltar(self, event):
-        self.master.destroy()
-        window = FirstWindow()
+    def doCheckin(self, master):
+        localizador = self.localizadorEntry.get()
+        if localizador == "":
+            messagebox.showinfo("Localizador não preenchido", "Por favor, preencha o localizador")
+        else:
+            passagemId = con.retrievePassagemWithLocalizador(localizador)
+            if passagemId != 0:
+                if con.isCheckinPendent(passagemId[0]):
+                    pagamento = Pagamento("credito", "0")
+                    pagamento = pagamento.insertPagamento()
 
-    def print(self, event):
-        if self.localizadorEntry.get() != "":
-            self.messageBox = messagebox.showinfo("Ola", "Ola2")
+                    checkin = Checkin(passagemId[0], pagamento)
+                    checkin = checkin.insertCheckin()
+
+                    if checkin:
+                        msg = messagebox.showinfo("Checkin realizado",
+                                            "Seu checkin foi realizado com sucesso.\n"
+                                            "Dirija-se ao portão de embarque")
+                        if msg == "ok":
+                            master.switch_frame(FirstWindow)
+                else:
+                    messagebox.showinfo("Checkin já realizado",
+                                        "Já foi realizado o checkin desta passagem.\n "
+                                        "Por favor, procure a companhia aérea contratada")
+            else:
+                messagebox.showinfo("Localizador não encontrado",
+                                    "Localizador informado não foi encontrado!\n"
+                                    "Verifique se o localizador está correto")
 
 
 if __name__ == '__main__':
